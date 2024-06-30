@@ -175,7 +175,7 @@ class LM(object):
             generate_kwargs: Other arguments to be passed directly to self.model.generate
         """
 
-        assert self.model_type in ['enc-dec', 'causal'], f"generate method not supported for model type '{self.model_type}'"
+        assert self.model_type in ['enc-dec', 'causal', "mlm"], f"generate method not supported for model type '{self.model_type}'"
 
         top_k = top_k if top_k is not None else self.model.config.top_k
         top_p = top_p if top_p is not None else self.model.config.top_p
@@ -184,6 +184,11 @@ class LM(object):
 
         pad_token_id = self.model.config.pad_token_id
         eos_token_id = self.model.config.eos_token_id
+
+        # Quick fix
+        if self.model_type == "mlm":
+            pad_token_id = torch.tensor(pad_token_id, device=self.device)
+            eos_token_id = torch.tensor(eos_token_id, device=self.device)
 
         # We need this as a batch in order to collect activations.
         input_tokenized_info = self.tokenizer(input_str, return_tensors="pt")
